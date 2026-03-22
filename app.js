@@ -433,7 +433,7 @@ function buildTableRef() {
         <span class="tableref-result">${n * b}</span>
       </div>`;
     }
-    page.innerHTML = `<div class="tableref-heading">× ${n}</div><div class="tableref-list">${rows}</div>`;
+    page.innerHTML = `<div class="tableref-list"><div class="tableref-card">${rows}</div></div>`;
     scroll.appendChild(page);
 
     const dot = document.createElement('div');
@@ -447,6 +447,8 @@ function buildTableRef() {
     document.querySelectorAll('.tableref-dot').forEach((d, i) => {
       d.classList.toggle('active', i === idx);
     });
+    const title = document.getElementById('tablerefTitle');
+    if (title) title.textContent = `× ${idx + 2}`;
   }, { passive: true });
 }
 
@@ -457,6 +459,8 @@ function scrollToTable(idx) {
 
 function openTableRef(startN = 2) {
   showScreen('sTableRef');
+  const title = document.getElementById('tablerefTitle');
+  if (title) title.textContent = `× ${startN}`;
   requestAnimationFrame(() => {
     const scroll = document.getElementById('tablerefScroll');
     scroll.scrollLeft = (startN - 2) * scroll.clientWidth;
