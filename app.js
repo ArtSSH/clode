@@ -346,7 +346,11 @@ function renderFlash() {
     srsEl.innerHTML = '';
   }
 
-  document.getElementById('flipCard').classList.remove('flipped');
+  const flipCard = document.getElementById('flipCard');
+  flipCard.style.transition = 'none';
+  flipCard.classList.remove('flipped');
+  flipCard.offsetHeight; // force reflow so snap applies before re-enabling
+  flipCard.style.transition = '';
   document.getElementById('flashRevealBtn').style.display = '';
   document.getElementById('flashRatingRow').style.display  = 'none';
   document.getElementById('flashLabel').textContent = 'Скільки буде?';
