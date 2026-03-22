@@ -466,7 +466,7 @@ function showExamDone() {
   saveExamScore(curTable, score);
   const eb = document.getElementById('examLastScore');
   if (eb) { eb.textContent = `${score} б.`; eb.style.display = 'inline'; }
-  document.getElementById('examTableTitle').textContent  = `Таблиця множення на ${curTable}`;
+  document.getElementById('examTableTitle').textContent  = `Таблиця на ${curTable}`;
   document.getElementById('examPrizeEmoji').textContent  = emoji;
   document.getElementById('examScoreNum').textContent    = score;
   document.getElementById('examLevelText').textContent   = level;
