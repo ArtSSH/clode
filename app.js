@@ -224,8 +224,18 @@ function setProgress(fillId, ctrId, idx, total) {
 ============================================================ */
 function startMode(mode) {
   curMode = mode; qIdx = 0; sessionStars = 0; sessionCorrect = 0;
-  if (mode === 'flash') {
-    srsQueue = buildSRSQueue(curTable); srsQueueIdx = 0;
+  if (mode === 'flash' || mode === 'flashAll') {
+    if (mode === 'flashAll') {
+      const arr = [1,2,3,4,5,6,7,8,9,10];
+      for (let i = arr.length - 1; i > 0; i--) {
+        const j = Math.floor(Math.random() * (i + 1));
+        [arr[i], arr[j]] = [arr[j], arr[i]];
+      }
+      srsQueue = arr.map(b => ({ b, requeueCount: 0 }));
+    } else {
+      srsQueue = buildSRSQueue(curTable);
+    }
+    srsQueueIdx = 0;
     renderFlash(); showScreen('sFlash');
   } else {
     questions = buildQs(curTable);
@@ -258,7 +268,7 @@ function renderFlash() {
     srsEl.innerHTML = '';
   }
 
-  document.getElementById('flashAnsCard').classList.remove('visible');
+  document.getElementById('flipCard').classList.remove('flipped');
   document.getElementById('flashRevealBtn').style.display = '';
   document.getElementById('flashRatingRow').style.display  = 'none';
   document.getElementById('flashLabel').textContent = 'Скільки буде?';
@@ -272,10 +282,9 @@ function renderFlash() {
 function revealFlash() {
   if (flashRevealed) return;
   flashRevealed = true;
-  document.getElementById('flashAnsCard').classList.add('visible');
+  document.getElementById('flipCard').classList.add('flipped');
   document.getElementById('flashRevealBtn').style.display = 'none';
   document.getElementById('flashRatingRow').style.display  = 'flex';
-  document.getElementById('flashLabel').textContent = 'Як знав?';
 }
 
 function rateCard(rating) {
@@ -404,7 +413,62 @@ function showDone() {
 }
 
 /* ============================================================
+   TABLE REFERENCE
+============================================================ */
+function buildTableRef() {
+  const scroll = document.getElementById('tablerefScroll');
+  const dots   = document.getElementById('tablerefDots');
+  scroll.innerHTML = '';
+  dots.innerHTML   = '';
+
+  for (let n = 2; n <= 10; n++) {
+    const page = document.createElement('div');
+    page.className = 'tableref-page';
+
+    let rows = '';
+    for (let b = 1; b <= 10; b++) {
+      rows += `<div class="tableref-row">
+        <span class="tableref-expr">${n} <span class="times">×</span> ${b}</span>
+        <span class="tableref-eq">=</span>
+        <span class="tableref-result">${n * b}</span>
+      </div>`;
+    }
+    page.innerHTML = `<div class="tableref-heading">× ${n}</div><div class="tableref-list">${rows}</div>`;
+    scroll.appendChild(page);
+
+    const dot = document.createElement('div');
+    dot.className = 'tableref-dot' + (n === 2 ? ' active' : '');
+    dot.onclick = () => scrollToTable(n - 2);
+    dots.appendChild(dot);
+  }
+
+  scroll.addEventListener('scroll', () => {
+    const idx = Math.round(scroll.scrollLeft / scroll.clientWidth);
+    document.querySelectorAll('.tableref-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === idx);
+    });
+  }, { passive: true });
+}
+
+function scrollToTable(idx) {
+  const scroll = document.getElementById('tablerefScroll');
+  scroll.scrollTo({ left: idx * scroll.clientWidth, behavior: 'smooth' });
+}
+
+function openTableRef(startN = 2) {
+  showScreen('sTableRef');
+  requestAnimationFrame(() => {
+    const scroll = document.getElementById('tablerefScroll');
+    scroll.scrollLeft = (startN - 2) * scroll.clientWidth;
+    document.querySelectorAll('.tableref-dot').forEach((d, i) => {
+      d.classList.toggle('active', i === startN - 2);
+    });
+  });
+}
+
+/* ============================================================
    INIT
 ============================================================ */
+buildTableRef();
 refreshTableBadges();
 refreshHomeDashboard();

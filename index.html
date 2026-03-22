@@ -49,6 +49,10 @@
 
   <div class="section-label">Обери таблицю</div>
   <div class="table-grid" id="tableGrid"></div>
+
+  <button class="home-tableref-btn" onclick="openTableRef()">
+    📋 Переглянути всі таблиці множення
+  </button>
 </div>
 
 <!-- ============================================================
@@ -94,6 +98,14 @@
       </div>
       <span class="mode-arrow">›</span>
     </div>
+    <div class="mode-item mode-item-subtle" onclick="startMode('flashAll')">
+      <div class="mode-icon study" style="background:#F0EFFF">🔄</div>
+      <div class="mode-text">
+        <h3>Всі картки заново</h3>
+        <p>Переглянути всі 10 карток сьогодні</p>
+      </div>
+      <span class="mode-arrow">›</span>
+    </div>
   </div>
 </div>
 
@@ -112,19 +124,22 @@
     </div>
   </div>
 
-  <div class="flash-q-card">
-    <div class="flash-hero-label" id="flashLabel">Скільки буде?</div>
-    <div class="flash-hero-q" id="flashQ">3 <span class="times">×</span> 4</div>
+  <div class="flip-container" id="flipContainer" onclick="revealFlash()">
+    <div class="flip-card" id="flipCard">
+      <div class="flash-q-card">
+        <div class="flash-hero-label" id="flashLabel">Скільки буде?</div>
+        <div class="flash-hero-q" id="flashQ">3 <span class="times">×</span> 4</div>
+        <div class="flip-tap-hint">натисни щоб відкрити</div>
+      </div>
+      <div class="flash-answer-card" id="flashAnsCard">
+        <div class="flash-ans-eq">=</div>
+        <div class="flash-ans-num" id="flashAnsNum">12</div>
+        <div class="flash-ans-info" id="flashSrsInfo"></div>
+      </div>
+    </div>
   </div>
 
-  <div class="flash-answer-card" id="flashAnsCard">
-    <div class="flash-ans-eq">=</div>
-    <div class="flash-ans-num" id="flashAnsNum">12</div>
-    <div class="flash-ans-info" id="flashSrsInfo"></div>
-  </div>
-
-  <div style="flex:1"></div>
-  <div style="display:flex; flex-direction:column; gap:10px; padding: 16px 16px 24px;">
+  <div class="flash-actions-bar">
     <button class="btn-primary" id="flashRevealBtn" onclick="revealFlash()">Показати відповідь</button>
     <div class="rating-row" id="flashRatingRow" style="display:none">
       <button class="btn-rating bad"  onclick="rateCard(0)"><span class="r-emoji">😕</span>Не знав</button>
@@ -245,6 +260,20 @@
       <button class="btn-secondary" onclick="goHome()">🏠 Головна</button>
     </div>
   </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: TABLE REFERENCE
+============================================================ -->
+<div class="screen" id="sTableRef">
+  <div class="topbar">
+    <button class="topbar-back" onclick="goHome()">← Назад</button>
+    <div style="flex:1; text-align:center; font-size:0.95rem; font-weight:800; color:var(--text);">Таблиці множення</div>
+    <div style="width:44px"></div>
+  </div>
+
+  <div class="tableref-scroll" id="tablerefScroll"></div>
+  <div class="tableref-dots" id="tablerefDots"></div>
 </div>
 
 <script src="app.js"></script>
