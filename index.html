@@ -113,6 +113,14 @@
       </div>
       <span class="mode-arrow">›</span>
     </div>
+    <div class="mode-item" onclick="startMode('math')">
+      <div class="mode-icon math">🧮</div>
+      <div class="mode-text">
+        <h3>Задачки</h3>
+        <p>Приклади по рівню складності</p>
+      </div>
+      <span class="mode-arrow">›</span>
+    </div>
     <div class="mode-item mode-item-subtle" onclick="startMode('flashAll')">
       <div class="mode-icon study" style="background:#F0EFFF">🔄</div>
       <div class="mode-text">
@@ -341,6 +349,36 @@
     </div>
     <div class="done-actions">
       <button class="btn-primary" onclick="startMode('exam')">🔄 Ще раз</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: MATH EXERCISES (ЗАДАЧКИ)
+============================================================ -->
+<div class="screen" id="sMath">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showScreen('sMode')">← Назад</button>
+    <div class="progress-wrap"><div class="progress-fill" id="mathProg" style="width:10%"></div></div>
+    <div class="topbar-counter" id="mathCtr">1/10</div>
+    <div class="stars-badge">⭐ <span id="mathStars">0</span></div>
+    <button class="topbar-home" onclick="goHome()">🏠</button>
+  </div>
+  <div class="content">
+    <div class="q-card">
+      <div class="q-label">🧮 Задачки</div>
+      <div class="q-main" id="mathQ">2 + 3 = ?</div>
+    </div>
+    <div class="choice-grid" id="mathGrid"></div>
+    <div class="answer-strip" id="mathStrip">
+      <div class="strip-icon" id="mathStripIcon">🎉</div>
+      <div class="strip-text">
+        <strong id="mathStripTitle">Правильно!</strong>
+        <span id="mathStripSub"></span>
+      </div>
+    </div>
+    <div class="quiz-actions">
+      <button class="btn-primary" id="mathNextBtn" style="display:none" onclick="nextQ('math')">Далі →</button>
     </div>
   </div>
 </div>

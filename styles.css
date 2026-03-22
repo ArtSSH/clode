@@ -224,6 +224,7 @@ body {
 .mode-icon.quiz  { background: #E8FFF0; }
 .mode-icon.type  { background: #FFF8E0; }
 .mode-icon.exam  { background: #FFF3E0; }
+.mode-icon.math  { background: #E8F5E9; }
 .mode-text { flex: 1; }
 .mode-text h3 { font-size: 1.1rem; font-weight: 800; color: var(--text); letter-spacing: -0.3px; }
 .mode-text p  { font-size: 0.8rem; color: var(--muted); margin-top: 8px; }

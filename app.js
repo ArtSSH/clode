@@ -144,6 +144,7 @@ function updateStarsBadges() {
   document.getElementById('choiceStars').textContent  = totalStars;
   document.getElementById('typingStars').textContent  = totalStars;
   document.getElementById('examStars').textContent    = totalStars;
+  const ms = document.getElementById('mathStars'); if (ms) ms.textContent = totalStars;
 }
 
 function getGlobalStats() {
@@ -235,6 +236,56 @@ function wrongOpts(correct) {
   return arr;
 }
 function qFmt(q) { return `${q.a} <span class="times">×</span> ${q.b}`; }
+
+/* ── MATH EXERCISES ── */
+function buildMathQs(table) {
+  const cfg = [0,0, 6,8,10,12,15,18,20,25,30]; // addMax per table
+  const mlt = [0,0, 4,5, 5, 6, 7, 8, 9,10,10]; // multMax
+  const dlt = [0,0, 0,2, 3, 4, 5, 5, 6, 7, 8]; // two-step max delta
+  const addMax = cfg[table], multMax = mlt[table], delta = dlt[table];
+  const pool = []; const seen = new Set();
+  function push(expr, ans) {
+    if (!seen.has(expr) && ans >= 0 && ans <= 99) { seen.add(expr); pool.push({ expr, ans }); }
+  }
+  const half = Math.floor(addMax / 2);
+  // simple add/sub
+  for (let a = 1; a <= addMax; a++) {
+    for (let b = 1; b <= half; b++) {
+      push(`${a} + ${b}`, a + b);
+      if (a > b) push(`${a} \u2212 ${b}`, a - b);
+    }
+  }
+  // table × n
+  for (let n = 2; n <= multMax; n++) push(`${table} \u00d7 ${n}`, table * n);
+  // two-step
+  if (delta > 0) {
+    for (let n = 2; n <= Math.min(5, multMax); n++) {
+      for (let c = 1; c <= delta; c++) {
+        push(`${table} \u00d7 ${n} + ${c}`, table * n + c);
+        if (table * n - c > 0) push(`${table} \u00d7 ${n} \u2212 ${c}`, table * n - c);
+      }
+    }
+  }
+  // shuffle pool, return first 10
+  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
+  return pool.slice(0, 10);
+}
+function mathWrongOpts(correct, table) {
+  const offsets = [1, 2, 3, table, table + 1];
+  const opts = new Set([correct]);
+  let attempts = 0;
+  while (opts.size < 4 && attempts < 200) {
+    attempts++;
+    const d = offsets[Math.floor(Math.random() * offsets.length)];
+    const sign = Math.random() < 0.5 ? 1 : -1;
+    const w = correct + sign * d;
+    if (w > 0 && w !== correct) opts.add(w);
+  }
+  const arr = [...opts];
+  for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
+  return arr;
+}
+
 function setProgress(fillId, ctrId, idx, total) {
   document.getElementById(fillId).style.width = ((idx + 1) / total * 100) + '%';
   document.getElementById(ctrId).textContent  = `${idx + 1}/${total}`;
@@ -259,10 +310,15 @@ function startMode(mode) {
     srsQueueIdx = 0;
     renderFlash(); showScreen('sFlash');
   } else {
-    questions = buildQs(curTable);
-    if (mode === 'choice') { renderChoice(); showScreen('sChoice'); }
-    if (mode === 'typing') { renderTyping(); showScreen('sTyping'); }
-    if (mode === 'exam')   { renderExam();   showScreen('sExam');   }
+    if (mode === 'math') {
+      questions = buildMathQs(curTable);
+      renderMath(); showScreen('sMath');
+    } else {
+      questions = buildQs(curTable);
+      if (mode === 'choice') { renderChoice(); showScreen('sChoice'); }
+      if (mode === 'typing') { renderTyping(); showScreen('sTyping'); }
+      if (mode === 'exam')   { renderExam();   showScreen('sExam');   }
+    }
   }
 }
 function restartCurrentMode() { startMode(curMode); }
@@ -522,6 +578,54 @@ function launchConfetti() {
 }
 
 /* ============================================================
+   MATH EXERCISES — RENDER & ANSWER
+============================================================ */
+function renderMath() {
+  const q = questions[qIdx];
+  document.getElementById('mathQ').textContent = q.expr + ' = ?';
+  setProgress('mathProg', 'mathCtr', qIdx, questions.length);
+  updateStarsBadges();
+  document.getElementById('mathStrip').classList.remove('show','ok','err');
+  document.getElementById('mathNextBtn').style.display = 'none';
+  const opts = mathWrongOpts(q.ans, curTable);
+  const grid = document.getElementById('mathGrid');
+  grid.innerHTML = '';
+  opts.forEach(val => {
+    const btn = document.createElement('button');
+    btn.className = 'choice-opt'; btn.textContent = val;
+    btn.onclick = () => answerMath(btn, val, q.ans);
+    grid.appendChild(btn);
+  });
+}
+function answerMath(btn, val, correct) {
+  document.querySelectorAll('#mathGrid .choice-opt').forEach(b => { b.onclick = null; });
+  const strip = document.getElementById('mathStrip');
+  if (val === correct) {
+    btn.classList.add('correct');
+    document.querySelectorAll('#mathGrid .choice-opt').forEach(b => { if (b !== btn) b.classList.add('dim'); });
+    totalStars += 2; sessionStars += 2; sessionCorrect++;
+    updateStarsBadges();
+    strip.className = 'answer-strip show ok';
+    launchMiniConfetti();
+    document.getElementById('mathStripIcon').textContent  = '🎉';
+    document.getElementById('mathStripTitle').textContent = 'Правильно!';
+    document.getElementById('mathStripSub').textContent   = '+2 зірочки';
+  } else {
+    btn.classList.add('wrong');
+    document.querySelectorAll('#mathGrid .choice-opt').forEach(b => {
+      if (parseInt(b.textContent) === correct) b.classList.add('correct');
+      else if (b !== btn) b.classList.add('dim');
+    });
+    strip.className = 'answer-strip show err';
+    document.getElementById('mathStripIcon').textContent  = '😅';
+    document.getElementById('mathStripTitle').textContent = 'Не правильно';
+    document.getElementById('mathStripSub').textContent   = `Правильна відповідь: ${correct}`;
+  }
+  document.getElementById('mathNextBtn').style.display = 'block';
+  saveStars();
+}
+
+/* ============================================================
    NEXT / DONE
 ============================================================ */
 function nextQ(mode) {
@@ -534,6 +638,7 @@ function nextQ(mode) {
   if (qIdx >= questions.length) { showDone(); return; }
   if (mode === 'choice') renderChoice();
   if (mode === 'typing') renderTyping();
+  if (mode === 'math')   renderMath();
 }
 function showDone() {
   const total = questions.length;
