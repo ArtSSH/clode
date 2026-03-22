@@ -98,6 +98,14 @@
       </div>
       <span class="mode-arrow">›</span>
     </div>
+    <div class="mode-item" onclick="startMode('exam')">
+      <div class="mode-icon exam">🏅</div>
+      <div class="mode-text">
+        <h3>Екзамен <span class="mode-badge badge-exam">100 балів</span></h3>
+        <p>Перевір рівень знань і отримай оцінку</p>
+      </div>
+      <span class="mode-arrow">›</span>
+    </div>
     <div class="mode-item mode-item-subtle" onclick="startMode('flashAll')">
       <div class="mode-icon study" style="background:#F0EFFF">🔄</div>
       <div class="mode-text">
@@ -222,6 +230,45 @@
 </div>
 
 <!-- ============================================================
+     SCREEN: EXAM
+============================================================ -->
+<div class="screen" id="sExam">
+  <div class="topbar">
+    <button class="topbar-back" onclick="showScreen('sMode')">← Назад</button>
+    <div class="progress-wrap">
+      <div class="progress-fill" id="examProg" style="width:10%"></div>
+    </div>
+    <div class="topbar-counter" id="examCtr">1/10</div>
+    <div class="stars-badge">⭐ <span id="examStars">0</span></div>
+    <button class="topbar-home" onclick="goHome()">🏠</button>
+  </div>
+  <div class="content">
+    <div class="q-card">
+      <div class="q-label">🏅 Екзамен</div>
+      <div class="q-main" id="examQ">3 <span class="times">×</span> 4</div>
+      <div class="typing-wrap">
+        <span class="typing-eq">=</span>
+        <input type="number" inputmode="numeric" pattern="[0-9]*"
+               class="typing-input" id="examInput" placeholder="?"
+               onkeydown="if(event.key==='Enter') checkExam()" />
+      </div>
+    </div>
+    <div class="answer-strip" id="examStrip">
+      <div class="strip-icon" id="examStripIcon">🎉</div>
+      <div class="strip-text">
+        <strong id="examStripTitle">Правильно!</strong>
+        <span id="examStripSub"></span>
+      </div>
+    </div>
+    <div style="flex:1"></div>
+    <div style="padding-bottom:24px; display:flex; flex-direction:column; gap:10px;">
+      <button class="btn-primary" id="examCheckBtn" onclick="checkExam()">Перевірити</button>
+      <button class="btn-primary" id="examNextBtn" style="display:none" onclick="nextQ('exam')">Далі →</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
      SCREEN: FLASH DONE
 ============================================================ -->
 <div class="screen" id="sFlashDone">
@@ -256,6 +303,32 @@
     </div>
     <div class="done-actions">
       <button class="btn-primary" onclick="restartCurrentMode()">🔄 Ще раз</button>
+      <button class="btn-secondary" onclick="showScreen('sMode')">← До режимів</button>
+      <button class="btn-secondary" onclick="goHome()">🏠 Головна</button>
+    </div>
+  </div>
+</div>
+
+<!-- ============================================================
+     SCREEN: EXAM DONE
+============================================================ -->
+<div class="screen" id="sExamDone">
+  <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;"></canvas>
+  <div class="exam-done-wrap">
+    <div class="exam-prize-emoji" id="examPrizeEmoji">🏆</div>
+    <div class="exam-score-row">
+      <div class="exam-score-num" id="examScoreNum">100</div>
+      <div class="exam-score-out">/ 100</div>
+    </div>
+    <div class="exam-level-text" id="examLevelText">Відмінник!</div>
+    <div class="exam-detail" id="examDetail">10 з 10 правильних</div>
+    <div class="done-stars">
+      <span>⭐</span>
+      <span id="examStarsEarned">+30</span>
+      <span style="font-size:0.8rem;color:#C09030;font-weight:600;">всього: <strong id="examTotalStars">30</strong></span>
+    </div>
+    <div class="done-actions">
+      <button class="btn-primary" onclick="startMode('exam')">🔄 Ще раз</button>
       <button class="btn-secondary" onclick="showScreen('sMode')">← До режимів</button>
       <button class="btn-secondary" onclick="goHome()">🏠 Головна</button>
     </div>

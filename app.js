@@ -138,6 +138,7 @@ function updateStarsBadges() {
   document.getElementById('modeStars').textContent    = totalStars;
   document.getElementById('choiceStars').textContent  = totalStars;
   document.getElementById('typingStars').textContent  = totalStars;
+  document.getElementById('examStars').textContent    = totalStars;
 }
 
 function getGlobalStats() {
@@ -241,6 +242,7 @@ function startMode(mode) {
     questions = buildQs(curTable);
     if (mode === 'choice') { renderChoice(); showScreen('sChoice'); }
     if (mode === 'typing') { renderTyping(); showScreen('sTyping'); }
+    if (mode === 'exam')   { renderExam();   showScreen('sExam');   }
   }
 }
 function restartCurrentMode() { startMode(curMode); }
@@ -389,10 +391,119 @@ function checkTyping() {
 document.getElementById('typingInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkTyping(); });
 
 /* ============================================================
+   EXAM
+============================================================ */
+function renderExam() {
+  const q = questions[qIdx];
+  document.getElementById('examQ').innerHTML = qFmt(q);
+  setProgress('examProg', 'examCtr', qIdx, questions.length);
+  updateStarsBadges();
+  const inp = document.getElementById('examInput');
+  inp.value = ''; inp.className = 'typing-input'; inp.disabled = false;
+  document.getElementById('examStrip').className = 'answer-strip';
+  document.getElementById('examCheckBtn').style.display = 'block';
+  document.getElementById('examNextBtn').style.display  = 'none';
+  setTimeout(() => inp.focus(), 100);
+}
+
+function checkExam() {
+  const q   = questions[qIdx];
+  const inp = document.getElementById('examInput');
+  const val = parseInt(inp.value);
+  if (isNaN(val) || inp.value.trim() === '') return;
+  inp.disabled = true;
+  document.getElementById('examCheckBtn').style.display = 'none';
+  document.getElementById('examNextBtn').style.display  = 'block';
+  const strip = document.getElementById('examStrip');
+  if (val === q.ans) {
+    inp.classList.add('correct');
+    totalStars += 3; sessionStars += 3; sessionCorrect++;
+    updateStarsBadges();
+    strip.className = 'answer-strip show ok';
+    document.getElementById('examStripIcon').textContent  = '🌟';
+    document.getElementById('examStripTitle').textContent = 'Правильно!';
+    document.getElementById('examStripSub').textContent   = '+3 зірочки';
+  } else {
+    inp.classList.add('wrong'); inp.value = q.ans;
+    strip.className = 'answer-strip show err';
+    document.getElementById('examStripIcon').textContent  = '😅';
+    document.getElementById('examStripTitle').textContent = 'Не правильно';
+    document.getElementById('examStripSub').textContent   = `Правильна відповідь: ${q.ans}`;
+  }
+}
+
+function showExamDone() {
+  const score = sessionCorrect * 10;
+  let emoji = '😅', level = 'Продовжуй тренуватись';
+  if (score === 100)    { emoji = '🏆'; level = 'Відмінник!'; }
+  else if (score >= 80) { emoji = '🥇'; level = 'Чудово!'; }
+  else if (score >= 60) { emoji = '🥈'; level = 'Добре!'; }
+  else if (score >= 40) { emoji = '🥉'; level = 'Непогано'; }
+  else if (score >= 20) { emoji = '📚'; level = 'Треба повчити'; }
+  document.getElementById('examPrizeEmoji').textContent  = emoji;
+  document.getElementById('examScoreNum').textContent    = score;
+  document.getElementById('examLevelText').textContent   = level;
+  document.getElementById('examDetail').textContent      = `${sessionCorrect} з ${questions.length} правильних`;
+  document.getElementById('examStarsEarned').textContent = `+${sessionStars}`;
+  document.getElementById('examTotalStars').textContent  = totalStars;
+  showScreen('sExamDone');
+  if (score >= 60) launchConfetti();
+}
+
+function launchConfetti() {
+  const canvas = document.getElementById('confettiCanvas');
+  const ctx    = canvas.getContext('2d');
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  const colors = ['#5B3BF5','#FFB800','#3DC95B','#FF4B4B','#FF6B9D','#00D4FF','#FFA500'];
+  const particles = Array.from({ length: 130 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -10 - Math.random() * 120,
+    w: 8 + Math.random() * 8,
+    h: 4 + Math.random() * 6,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: (Math.random() - 0.5) * 4,
+    vy: 2 + Math.random() * 4,
+    rot: Math.random() * Math.PI * 2,
+    vr: (Math.random() - 0.5) * 0.18,
+    opacity: 1
+  }));
+  let start = null;
+  const duration = 3500;
+  function animate(ts) {
+    if (!start) start = ts;
+    const elapsed = ts - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x  += p.vx;
+      p.y  += p.vy;
+      p.rot += p.vr;
+      p.vy += 0.06;
+      if (elapsed > duration * 0.65) p.opacity = Math.max(0, p.opacity - 0.025);
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (elapsed < duration + 500) requestAnimationFrame(animate);
+    else ctx.clearRect(0, 0, canvas.width, canvas.height);
+  }
+  requestAnimationFrame(animate);
+}
+
+/* ============================================================
    NEXT / DONE
 ============================================================ */
 function nextQ(mode) {
   qIdx++;
+  if (mode === 'exam') {
+    if (qIdx >= questions.length) { showExamDone(); return; }
+    renderExam();
+    return;
+  }
   if (qIdx >= questions.length) { showDone(); return; }
   if (mode === 'choice') renderChoice();
   if (mode === 'typing') renderTyping();
