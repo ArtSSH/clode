@@ -5,6 +5,11 @@ const STARS_KEY = 'mult_stars_v1';
 function loadStars() { return parseInt(localStorage.getItem(STARS_KEY) || '0'); }
 function saveStars() { localStorage.setItem(STARS_KEY, totalStars); }
 
+const EXAM_SCORES_KEY = 'mult_exam_scores_v1';
+function loadExamScores() { try { return JSON.parse(localStorage.getItem(EXAM_SCORES_KEY) || '{}'); } catch { return {}; } }
+function saveExamScore(table, score) { const d = loadExamScores(); d[table] = score; localStorage.setItem(EXAM_SCORES_KEY, JSON.stringify(d)); }
+function getExamScore(table) { return loadExamScores()[table] ?? null; }
+
 let totalStars     = loadStars();
 let curTable       = 2;
 let curMode        = 'flash';
@@ -195,6 +200,15 @@ function selectTable(n) {
     info.classList.remove('show');
   }
 
+  const examBadge = document.getElementById('examLastScore');
+  const lastScore = getExamScore(n);
+  if (lastScore !== null) {
+    examBadge.textContent = `${lastScore} б.`;
+    examBadge.style.display = 'inline';
+  } else {
+    examBadge.style.display = 'none';
+  }
+
   showScreen('sMode');
 }
 
@@ -330,6 +344,7 @@ function answerChoice(btn, val, correct) {
     totalStars += 2; sessionStars += 2; sessionCorrect++;
     updateStarsBadges();
     strip.className = 'answer-strip show ok';
+    launchMiniConfetti();
     document.getElementById('choiceStripIcon').textContent  = '🎉';
     document.getElementById('choiceStripTitle').textContent = 'Правильно!';
     document.getElementById('choiceStripSub').textContent   = '+2 зірочки';
@@ -377,6 +392,7 @@ function checkTyping() {
     totalStars += 3; sessionStars += 3; sessionCorrect++;
     updateStarsBadges();
     strip.className = 'answer-strip show ok';
+    launchMiniConfetti();
     document.getElementById('typingStripIcon').textContent  = '🌟';
     document.getElementById('typingStripTitle').textContent = 'Правильно!';
     document.getElementById('typingStripSub').textContent   = '+3 зірочки';
@@ -420,6 +436,7 @@ function checkExam() {
     totalStars += 3; sessionStars += 3; sessionCorrect++;
     updateStarsBadges();
     strip.className = 'answer-strip show ok';
+    launchMiniConfetti();
     document.getElementById('examStripIcon').textContent  = '🌟';
     document.getElementById('examStripTitle').textContent = 'Правильно!';
     document.getElementById('examStripSub').textContent   = '+3 зірочки';
@@ -440,6 +457,9 @@ function showExamDone() {
   else if (score >= 60) { emoji = '🥈'; level = 'Добре!'; }
   else if (score >= 40) { emoji = '🥉'; level = 'Непогано'; }
   else if (score >= 20) { emoji = '📚'; level = 'Треба повчити'; }
+  saveExamScore(curTable, score);
+  const eb = document.getElementById('examLastScore');
+  if (eb) { eb.textContent = `${score} б.`; eb.style.display = 'inline'; }
   document.getElementById('examPrizeEmoji').textContent  = emoji;
   document.getElementById('examScoreNum').textContent    = score;
   document.getElementById('examLevelText').textContent   = level;
@@ -521,6 +541,49 @@ function showDone() {
   document.getElementById('doneStarsEarned').textContent = `+${sessionStars} зірочок`;
   document.getElementById('doneTotalStars').textContent  = totalStars;
   showScreen('sDone');
+}
+
+function launchMiniConfetti() {
+  const canvas = document.createElement('canvas');
+  canvas.style.cssText = 'position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:50;';
+  canvas.width  = window.innerWidth;
+  canvas.height = window.innerHeight;
+  document.body.appendChild(canvas);
+  const ctx    = canvas.getContext('2d');
+  const colors = ['#5B3BF5','#FFB800','#3DC95B','#FF4B4B','#FF6B9D','#00D4FF'];
+  const particles = Array.from({ length: 55 }, () => ({
+    x: Math.random() * canvas.width,
+    y: -8 - Math.random() * 60,
+    w: 7 + Math.random() * 7,
+    h: 3 + Math.random() * 5,
+    color: colors[Math.floor(Math.random() * colors.length)],
+    vx: (Math.random() - 0.5) * 4,
+    vy: 2.5 + Math.random() * 3,
+    rot: Math.random() * Math.PI * 2,
+    vr: (Math.random() - 0.5) * 0.2,
+    opacity: 1
+  }));
+  let start = null;
+  const duration = 1400;
+  function animate(ts) {
+    if (!start) start = ts;
+    const elapsed = ts - start;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    particles.forEach(p => {
+      p.x += p.vx; p.y += p.vy; p.rot += p.vr; p.vy += 0.07;
+      if (elapsed > duration * 0.6) p.opacity = Math.max(0, p.opacity - 0.04);
+      ctx.save();
+      ctx.globalAlpha = p.opacity;
+      ctx.translate(p.x, p.y);
+      ctx.rotate(p.rot);
+      ctx.fillStyle = p.color;
+      ctx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h);
+      ctx.restore();
+    });
+    if (elapsed < duration + 300) requestAnimationFrame(animate);
+    else canvas.remove();
+  }
+  requestAnimationFrame(animate);
 }
 
 /* ============================================================
