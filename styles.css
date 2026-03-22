@@ -513,6 +513,10 @@ body {
   flex-shrink: 0;
 }
 .home-tableref-btn:active { background: var(--border); color: var(--text); }
+.home-version {
+  text-align: center; font-size: 0.75rem; color: var(--border);
+  padding: 12px 0 16px; letter-spacing: 0.05em;
+}
 
 /* ===== TABLE REFERENCE SCREEN ===== */
 .tableref-scroll {
