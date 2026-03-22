@@ -318,9 +318,16 @@
 ============================================================ -->
 <div class="screen" id="sExamDone">
   <canvas id="confettiCanvas" style="position:fixed;top:0;left:0;width:100%;height:100%;pointer-events:none;z-index:100;"></canvas>
+  <div class="exam-done-header">
+    <div class="exam-done-nav">
+      <button class="topbar-back" style="background:rgba(255,255,255,0.18);color:white;" onclick="showScreen('sMode')">← До режимів</button>
+      <div style="flex:1"></div>
+      <button class="topbar-home" style="background:rgba(255,255,255,0.18);color:white;" onclick="goHome()">🏠</button>
+    </div>
+    <div class="exam-done-header-title" id="examTableTitle">Таблиця на 7</div>
+  </div>
   <div class="exam-done-wrap">
     <div class="exam-prize-emoji" id="examPrizeEmoji">🏆</div>
-    <div class="exam-table-title" id="examTableTitle">Таблиця множення на 2</div>
     <div class="exam-score-row">
       <div class="exam-score-num" id="examScoreNum">100</div>
       <div class="exam-score-out">/ 100</div>
@@ -334,8 +341,6 @@
     </div>
     <div class="done-actions">
       <button class="btn-primary" onclick="startMode('exam')">🔄 Ще раз</button>
-      <button class="btn-secondary" onclick="showScreen('sMode')">← До режимів</button>
-      <button class="btn-secondary" onclick="goHome()">🏠 Головна</button>
     </div>
   </div>
 </div>

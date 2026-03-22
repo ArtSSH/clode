@@ -440,10 +440,36 @@ body {
 }
 
 /* ===== EXAM DONE ===== */
+.exam-done-header {
+  background: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  border-radius: 0 0 32px 32px;
+  padding: 14px 16px 28px;
+  color: white;
+  position: relative; overflow: hidden;
+  flex-shrink: 0;
+}
+.exam-done-header::before {
+  content: '';
+  position: absolute; inset: 0;
+  background: radial-gradient(circle at 80% 30%, rgba(255,255,255,0.12) 0%, transparent 55%),
+              radial-gradient(circle at 20% 80%, rgba(255,200,120,0.1) 0%, transparent 45%);
+  pointer-events: none;
+}
+.exam-done-nav {
+  display: flex; align-items: center; gap: 10px;
+  margin-bottom: 14px; position: relative;
+}
+.exam-done-nav .topbar-back { background: rgba(255,255,255,0.18); color: white; }
+.exam-done-nav .topbar-home { background: rgba(255,255,255,0.18); color: white; }
+.exam-done-header-title {
+  font-size: 2rem; font-weight: 900;
+  letter-spacing: -0.5px; line-height: 1;
+  position: relative;
+}
 .exam-done-wrap {
   flex: 1; display: flex; flex-direction: column;
   align-items: center; justify-content: center;
-  padding: 32px 16px; text-align: center; gap: 4px;
+  padding: 24px 16px 32px; text-align: center; gap: 4px;
 }
 .exam-prize-emoji {
   font-size: 5.5rem; line-height: 1; margin-bottom: 10px;
@@ -457,7 +483,6 @@ body {
   animation-delay: 0.3s;
 }
 .exam-score-out { font-size: 1.5rem; font-weight: 700; color: var(--muted); }
-.exam-table-title { font-size: 0.85rem; font-weight: 700; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 2px; }
 .exam-level-text { font-size: 1.5rem; font-weight: 900; color: var(--text); margin-top: 4px; }
 .exam-detail { font-size: 0.9rem; color: var(--muted); margin-bottom: 8px; }
 @keyframes examPopIn {
