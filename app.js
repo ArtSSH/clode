@@ -165,6 +165,12 @@ function refreshHomeDashboard() {
   document.getElementById('statNew').textContent   = totalNew;
   document.getElementById('statDue').textContent   = totalDue;
   document.getElementById('statStars').textContent = totalStars;
+  let mastered = 0;
+  for (let t = 2; t <= 10; t++) {
+    const s = getExamScore(t);
+    if (s !== null && s >= 80) mastered++;
+  }
+  document.getElementById('statMastered').textContent = mastered;
 }
 
 /* ============================================================
