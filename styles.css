@@ -380,10 +380,8 @@ body {
 .typing-input.wrong   { border-color: var(--red);   background: #FFF0F0; color: var(--red);   }
 
 /* ===== ANSWER STRIP ===== */
-.answer-strip { display: none; border-radius: 14px; padding: 13px 16px; margin-bottom: 12px; align-items: center; gap: 10px; }
+.answer-strip { display: none; padding: 10px 16px; margin-bottom: 12px; align-items: center; gap: 10px; }
 .answer-strip.show { display: flex; }
-.answer-strip.ok  { background: #E8FFF0; }
-.answer-strip.err { background: #FFF0F0; }
 .strip-icon { font-size: 1.4rem; flex-shrink: 0; }
 .strip-text strong { font-size: 0.92rem; font-weight: 800; display: block; letter-spacing: -0.2px; }
 .strip-text span   { font-size: 0.8rem; color: var(--muted); }
