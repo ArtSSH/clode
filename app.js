@@ -25,6 +25,7 @@ let flashRevealed  = false;
 let srsQueue       = [];
 let srsQueueIdx    = 0;
 let mixedReview    = false;
+let srsBaseTotal   = 0;   // cards in the session, not counting repeats
 
 /* ============================================================
    SRS  (localStorage)
@@ -85,6 +86,8 @@ function getTableMastery(table) {
 function applyRating(table, b, rating) {
   const cd = getCardData(table, b);
   let { interval, ease, lapses } = cd;
+  // Practising a card before it is due must not stretch its interval
+  if (rating > 0 && interval > 0 && cd.due > today()) return { requeue: false };
   if (rating === 0) {
     lapses++; interval = 0; ease = Math.max(1.3, ease - 0.2);
     setCardData(table, b, { interval, ease, due: today(), lapses });
@@ -117,9 +120,41 @@ function buildSRSQueue(table) {
     else upcoming.push(b);
   }
   due.sort((a, z) => a.due.localeCompare(z.due));
+  fresh.sort((x, y) => EASY_ORDER.indexOf(x) - EASY_ORDER.indexOf(y));
   let queue = [...due.map(x => x.b), ...fresh];
   if (queue.length === 0) queue = [...upcoming];
   return queue.map(b => ({ t: table, b, requeueCount: 0 }));
+}
+
+// New cards go easiest first: ×1, ×10, ×2, ×5, then the rest
+const EASY_ORDER = [1, 10, 2, 5, 4, 3, 9, 6, 8, 7];
+
+// Strategy hint for a fact; picks the easier factor as the "rule" and the other as the number
+const HINT_RANK = { 1: 0, 10: 1, 2: 2, 5: 3, 9: 4, 4: 5, 3: 6, 8: 7, 6: 8, 7: 9 };
+function strategyHint(a, b) {
+  const [k, n] = HINT_RANK[a] <= HINT_RANK[b] ? [a, b] : [b, a];
+  switch (k) {
+    case 1:  return `Помножити на 1 — число не змінюється: ${n}`;
+    case 10: return `×10 — допиши нуль: ${n} → ${n * 10}`;
+    case 2:  return `Подвой: ${n} + ${n} = ${2 * n}`;
+    case 5:  return `5 × ${n} — половина від 10 × ${n} = ${10 * n}. Половина: ${5 * n}`;
+    case 9:  return `9 × ${n} = 10 × ${n} − ${n} = ${10 * n} − ${n} = ${9 * n}`;
+    case 4:  return `Подвій двічі: ${n} + ${n} = ${2 * n}, ${2 * n} + ${2 * n} = ${4 * n}`;
+    case 3:  return `Подвій і додай ще раз: ${n} + ${n} = ${2 * n}, ${2 * n} + ${n} = ${3 * n}`;
+    case 8:  return `Подвій тричі: ${n} → ${2 * n} → ${4 * n} → ${8 * n}`;
+    case 6:  return `6 × ${n} = 5 × ${n} + ${n} = ${5 * n} + ${n} = ${6 * n}`;
+    default: return `7 × ${n} = 5 × ${n} + 2 × ${n} = ${5 * n} + ${2 * n} = ${7 * n}`;
+  }
+}
+// a rows of b dots, grouped by five
+function dotArrayHTML(a, b) {
+  let html = '';
+  for (let r = 0; r < a; r++) {
+    html += `<div class="dot-row${r === 5 ? ' gap-r' : ''}">`;
+    for (let c = 0; c < b; c++) html += `<i${c === 5 ? ' class="gap-c"' : ''}></i>`;
+    html += '</div>';
+  }
+  return html;
 }
 
 // Cards due today from every table, oldest first (capped so one session stays short)
@@ -324,8 +359,8 @@ function buildWeightedQs(table) {
 function qFmt(q) { return `${q.a} <span class="times">×</span> ${q.b}`; }
 
 /* ── MATH EXERCISES ── */
-function buildMathQs(table) {
-  const cfg = [0,0, 6,8,10,12,15,18,20,25,30]; // addMax per table
+function buildExprPool(table) {
+  const cfg =[0,0, 6,8,10,12,15,18,20,25,30]; // addMax per table
   const mlt = [0,0, 4,5, 5, 6, 7, 8, 9,10,10]; // multMax
   const dlt = [0,0, 0,2, 3, 4, 5, 5, 6, 7, 8]; // two-step max delta
   const addMax = cfg[table], multMax = mlt[table], delta = dlt[table];
@@ -352,9 +387,53 @@ function buildMathQs(table) {
       }
     }
   }
-  // shuffle pool, return first 10
-  for (let i = pool.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [pool[i], pool[j]] = [pool[j], pool[i]]; }
-  return pool.slice(0, 10);
+  return pool;
+}
+
+function shuffled(arr) {
+  const a = [...arr];
+  for (let i = a.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [a[i], a[j]] = [a[j], a[i]]; }
+  return a;
+}
+
+// Word problems: forms are [2–4, 5+] so the numeral agrees with the noun
+const WORD_ITEMS = [
+  { box: ['коробки', 'коробок'],   each: 'У кожній',  thing: ['цукерки', 'цукерок'] },
+  { box: ['тарілки', 'тарілок'],   each: 'На кожній', thing: ['яблука', 'яблук'] },
+  { box: ['букети', 'букетів'],    each: 'У кожному', thing: ['квітки', 'квіток'] },
+  { box: ['полиці', 'полиць'],     each: 'На кожній', thing: ['книжки', 'книжок'] },
+  { box: ['кошики', 'кошиків'],    each: 'У кожному', thing: ['гриби', 'грибів'] },
+  { box: ['пакети', 'пакетів'],    each: 'У кожному', thing: ['апельсини', 'апельсинів'] },
+  { box: ['ряди', 'рядів'],        each: 'У кожному', thing: ['стільці', 'стільців'] },
+  { box: ['зошити', 'зошитів'],    each: 'У кожному', thing: ['сторінки', 'сторінок'] },
+  { box: ['вази', 'ваз'],          each: 'У кожній',  thing: ['троянди', 'троянд'] },
+];
+function pl(n, few, many) { return n <= 4 ? few : many; }
+function wordProblem(table, other) {
+  const c = WORD_ITEMS[Math.floor(Math.random() * WORD_ITEMS.length)];
+  const [n, t] = Math.random() < 0.5 ? [table, other] : [other, table];
+  return {
+    text: `Є ${n} ${pl(n, c.box[0], c.box[1])}. ${c.each} — по ${t} ${pl(t, c.thing[0], c.thing[1])}. Скільки ${c.thing[1]} усього?`,
+    expr: `w:${c.box[0]}:${n}x${t}`,
+    ans: n * t
+  };
+}
+
+// 10 tasks: 5 word problems, 3 multiplication examples, 2 add/sub (topped up if a pool is short)
+function buildMathQs(table) {
+  const multMax = [0,0, 4,5, 5, 6, 7, 8, 9,10,10][table];
+  const all = buildExprPool(table);
+  const multPool = all.filter(x => x.expr.includes('×'));
+  const addPool  = all.filter(x => !x.expr.includes('×'));
+  const words = [], seen = new Set();
+  for (let tries = 0; words.length < 5 && tries < 60; tries++) {
+    const w = wordProblem(table, 2 + Math.floor(Math.random() * (multMax - 1)));
+    if (!seen.has(w.text)) { seen.add(w.text); words.push(w); }
+  }
+  const qs = [...words, ...shuffled(multPool).slice(0, 3), ...shuffled(addPool).slice(0, 2)];
+  const rest = shuffled(all).filter(x => !qs.includes(x));
+  while (qs.length < 10 && rest.length) qs.push(rest.shift());
+  return shuffled(qs).slice(0, 10);
 }
 function mathWrongOpts(correct, table) {
   const offsets = [1, 2, 3, table, table + 1];
@@ -393,7 +472,7 @@ function startMode(mode) {
     } else {
       srsQueue = buildSRSQueue(curTable);
     }
-    srsQueueIdx = 0;
+    srsQueueIdx = 0; srsBaseTotal = srsQueue.length;
     renderFlash(); showScreen('sFlash');
   } else {
     if (mode === 'math') {
@@ -413,7 +492,7 @@ function startMixedReview() {
   const queue = buildMixedQueue();
   if (!queue.length) return;
   curMode = 'flash'; qIdx = 0; sessionStars = 0; sessionCorrect = 0;
-  srsQueue = queue; srsQueueIdx = 0;
+  srsQueue = queue; srsQueueIdx = 0; srsBaseTotal = queue.length;
   mixedReview = true;
   renderFlash(); showScreen('sFlash');
 }
@@ -424,9 +503,10 @@ function flashBack() { if (mixedReview) goHome(); else showScreen('sMode'); }
 ============================================================ */
 function renderFlash() {
   if (srsQueueIdx >= srsQueue.length) {
+    const seenCards = srsBaseTotal || srsQueueIdx;
     document.getElementById('flashDoneText').textContent = mixedReview
-      ? `Переглянуто ${srsQueueIdx} карток — змішане повторення`
-      : `Переглянуто ${srsQueueIdx} карток — таблиця на ${curTable}`;
+      ? `Переглянуто ${seenCards} карток — змішане повторення`
+      : `Переглянуто ${seenCards} карток — таблиця на ${curTable}`;
     ['flashDoneHint', 'flashDoneTestBtn', 'flashDoneTypeBtn'].forEach(id => {
       document.getElementById(id).style.display = mixedReview ? 'none' : '';
     });
@@ -458,9 +538,13 @@ function renderFlash() {
   document.getElementById('flashRatingRow').style.display  = 'none';
   document.getElementById('flashLabel').textContent = 'Скільки буде?';
 
-  const total = srsQueue.length;
-  document.getElementById('flashProg').style.width = (srsQueueIdx / total * 100) + '%';
-  document.getElementById('flashCtr').textContent  = `${srsQueueIdx + 1}/${total}`;
+  const total = srsBaseTotal || srsQueue.length;
+  document.getElementById('flashProg').style.width = (Math.min(srsQueueIdx, total) / total * 100) + '%';
+  document.getElementById('flashCtr').textContent  = `${Math.min(srsQueueIdx + 1, total)}/${total}`;
+
+  document.getElementById('flashHintBox').style.display = 'none';
+  document.getElementById('flashDots').innerHTML = dotArrayHTML(t, b);
+  document.getElementById('flashHint').textContent = `💡 ${strategyHint(t, b)}`;
   flashRevealed = false;
 }
 
@@ -468,6 +552,7 @@ function revealFlash() {
   if (flashRevealed) return;
   flashRevealed = true;
   document.getElementById('flipCard').classList.add('flipped');
+  document.getElementById('flashHintBox').style.display = '';
   document.getElementById('flashRevealBtn').style.display = 'none';
   document.getElementById('flashRatingRow').style.display  = 'flex';
 }
@@ -527,7 +612,7 @@ function answerChoice(btn, val, correct) {
     strip.className = 'answer-strip show err';
     document.getElementById('choiceStripIcon').textContent  = '😅';
     document.getElementById('choiceStripTitle').textContent = 'Не правильно';
-    document.getElementById('choiceStripSub').textContent   = `Правильна відповідь: ${correct}`;
+    document.getElementById('choiceStripSub').textContent   = `Правильна відповідь: ${correct}. ${strategyHint(questions[qIdx].a, questions[qIdx].b)}`;
   }
   document.getElementById('choiceNextBtn').style.display = 'block';
 }
@@ -553,7 +638,7 @@ function checkTyping() {
   const inp = document.getElementById('typingInput');
   if (inp.disabled) return;
   const val = parseInt(inp.value);
-  if (isNaN(val) || inp.value.trim() === '') return;
+  if (!/^\d{1,3}$/.test(inp.value.trim())) return;
   inp.disabled = true;
   document.getElementById('typingCheckBtn').style.display = 'none';
   document.getElementById('typingNextBtn').style.display  = 'block';
@@ -573,7 +658,7 @@ function checkTyping() {
     strip.className = 'answer-strip show err';
     document.getElementById('typingStripIcon').textContent  = '😅';
     document.getElementById('typingStripTitle').textContent = 'Не правильно';
-    document.getElementById('typingStripSub').textContent   = `Правильна відповідь: ${q.ans}`;
+    document.getElementById('typingStripSub').textContent   = `Правильна відповідь: ${q.ans}. ${strategyHint(q.a, q.b)}`;
   }
 }
 document.getElementById('typingInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkTyping(); });
@@ -600,7 +685,7 @@ function checkExam() {
   const inp = document.getElementById('examInput');
   if (inp.disabled) return;
   const val = parseInt(inp.value);
-  if (isNaN(val) || inp.value.trim() === '') return;
+  if (!/^\d{1,3}$/.test(inp.value.trim())) return;
   inp.disabled = true;
   document.getElementById('examCheckBtn').style.display = 'none';
   document.getElementById('examNextBtn').style.display  = 'block';
@@ -620,7 +705,7 @@ function checkExam() {
     strip.className = 'answer-strip show err';
     document.getElementById('examStripIcon').textContent  = '😅';
     document.getElementById('examStripTitle').textContent = 'Не правильно';
-    document.getElementById('examStripSub').textContent   = `Правильна відповідь: ${q.ans}`;
+    document.getElementById('examStripSub').textContent   = `Правильна відповідь: ${q.ans}. ${strategyHint(q.a, q.b)}`;
   }
 }
 
@@ -695,7 +780,9 @@ function launchConfetti() {
 ============================================================ */
 function renderMath() {
   const q = questions[qIdx];
-  document.getElementById('mathQ').textContent = q.expr + ' = ?';
+  const mq = document.getElementById('mathQ');
+  mq.textContent = q.text || (q.expr + ' = ?');
+  mq.classList.toggle('word', !!q.text);
   setProgress('mathProg', 'mathCtr', qIdx, questions.length);
   updateStarsBadges();
   document.getElementById('mathStrip').classList.remove('show','ok','err');

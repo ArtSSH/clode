@@ -323,6 +323,23 @@ body {
 .flash-ans-num { font-size: 4.5rem; font-weight: 900; color: var(--accent); line-height: 1; letter-spacing: -2px; }
 .flash-ans-info { font-size: 0.8rem; color: var(--muted); margin-top: 10px; display: flex; align-items: center; justify-content: center; gap: 4px; }
 
+/* Hint under the card */
+.flash-hint-box { margin: 14px 16px 0; text-align: center; flex-shrink: 0; }
+.flash-hint {
+  display: inline-block; max-width: 100%;
+  background: #FFF6D6; color: #6B4E00;
+  border-radius: 14px; padding: 10px 14px;
+  font-size: 0.88rem; font-weight: 600; line-height: 1.35;
+}
+.dot-array { display: flex; flex-direction: column; gap: 3px; width: fit-content; margin: 0 auto 12px; }
+.dot-array .dot-row { display: flex; gap: 3px; }
+.dot-array .dot-row.gap-r { margin-top: 5px; }
+.dot-array i { width: 9px; height: 9px; border-radius: 50%; background: var(--accent2); display: block; }
+.dot-array i.gap-c { margin-left: 5px; }
+
+/* Word problems in "Задачки" */
+.q-main.word { font-size: 1.3rem; line-height: 1.4; letter-spacing: 0; font-weight: 800; }
+
 /* SRS dots */
 .srs-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--border); flex-shrink: 0; }
 .srs-dot.ok { background: var(--green); }
