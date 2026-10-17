@@ -131,7 +131,7 @@ body {
 
 .home-stats-row {
   display: grid; grid-template-columns: 1fr 1fr;
-  background: white; border-radius: 16px;
+  background: var(--white); border-radius: 16px;
   margin: 16px 16px 0;
   box-shadow: var(--card-sh);
   overflow: hidden;
@@ -321,7 +321,7 @@ body {
 
 /* Back face */
 .flash-answer-card {
-  background: white; border-radius: 24px;
+  background: var(--white); border-radius: 24px;
   padding: 28px 24px 24px; text-align: center;
   box-shadow: var(--card-sh); border: 2px solid var(--border);
   position: absolute; inset: 0;

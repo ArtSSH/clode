@@ -55,8 +55,8 @@
     <div class="home-stat">
       <div class="home-stat-num" id="statStars">0</div>
       <div class="home-stat-bottom">
-        <span class="home-stat-icon">⭐</span>
-        <span class="home-stat-label">зірочок</span>
+        <span class="home-stat-icon cur-icon">⭐</span>
+        <span class="home-stat-label" id="statStarsLabel">зірочок</span>
       </div>
     </div>
     <div class="home-stat">
@@ -87,7 +87,7 @@
     <div class="mode-nav-row">
       <button class="topbar-back" onclick="goHome()">← Назад</button>
       <div style="flex:1"></div>
-      <div class="stars-badge">⭐ <span id="modeStars">0</span></div>
+      <div class="stars-badge"><span class="cur-icon">⭐</span> <span id="modeStars">0</span></div>
     </div>
     <div class="mode-title-block">
       <h2 id="modeTitle">Таблиця на 3</h2>
@@ -204,7 +204,7 @@
       <div class="progress-fill" id="choiceProg" style="width:10%"></div>
     </div>
     <div class="topbar-counter" id="choiceCtr">1/10</div>
-    <div class="stars-badge">⭐ <span id="choiceStars">0</span></div>
+    <div class="stars-badge"><span class="cur-icon">⭐</span> <span id="choiceStars">0</span></div>
     <button class="topbar-home" onclick="goHome()">🏠</button>
   </div>
   <div class="content">
@@ -236,7 +236,7 @@
       <div class="progress-fill" id="typingProg" style="width:10%"></div>
     </div>
     <div class="topbar-counter" id="typingCtr">1/10</div>
-    <div class="stars-badge">⭐ <span id="typingStars">0</span></div>
+    <div class="stars-badge"><span class="cur-icon">⭐</span> <span id="typingStars">0</span></div>
     <button class="topbar-home" onclick="goHome()">🏠</button>
   </div>
   <div class="content">
@@ -273,7 +273,7 @@
       <div class="progress-fill" id="examProg" style="width:10%"></div>
     </div>
     <div class="topbar-counter" id="examCtr">1/10</div>
-    <div class="stars-badge">⭐ <span id="examStars">0</span></div>
+    <div class="stars-badge"><span class="cur-icon">⭐</span> <span id="examStars">0</span></div>
     <button class="topbar-home" onclick="goHome()">🏠</button>
   </div>
   <div class="content">
@@ -310,7 +310,7 @@
     <div class="done-score" id="flashDoneText">Всі картки переглянуто</div>
     <div id="flashDoneHint" style="margin:22px 0; width:100%; background:var(--border); border-radius:16px; padding:18px; text-align:center;">
       <div style="font-size:0.85rem; color:var(--muted); font-weight:700; margin-bottom:6px;">Тепер перевір себе!</div>
-      <div style="font-size:0.9rem; color:var(--text);">Спробуй тест або диктант — там чекають зірочки ⭐</div>
+      <div style="font-size:0.9rem; color:var(--text);" id="flashDoneReward">Спробуй тест або диктант — там чекають зірочки ⭐</div>
     </div>
     <div class="done-actions">
       <button class="btn-primary" id="flashDoneTestBtn" onclick="startMode('choice')">Тест 🎯</button>
@@ -329,7 +329,7 @@
     <div class="done-title" id="doneTitle">Чудово!</div>
     <div class="done-score" id="doneScore">10 з 10 правильно</div>
     <div class="done-stars">
-      <span>⭐</span>
+      <span class="cur-icon">⭐</span>
       <span id="doneStarsEarned">+10</span>
       <span style="font-size:0.8rem; color:#C09030; font-weight:600;">всього: <strong id="doneTotalStars">10</strong></span>
     </div>
@@ -363,7 +363,7 @@
     <div class="exam-level-text" id="examLevelText">Відмінник!</div>
     <div class="exam-detail" id="examDetail">10 з 10 правильних</div>
     <div class="done-stars">
-      <span>⭐</span>
+      <span class="cur-icon">⭐</span>
       <span id="examStarsEarned">+30</span>
       <span style="font-size:0.8rem;color:#C09030;font-weight:600;">всього: <strong id="examTotalStars">30</strong></span>
     </div>
@@ -381,7 +381,7 @@
     <button class="topbar-back" onclick="showScreen('sMode')">← Назад</button>
     <div class="progress-wrap"><div class="progress-fill" id="mathProg" style="width:10%"></div></div>
     <div class="topbar-counter" id="mathCtr">1/10</div>
-    <div class="stars-badge">⭐ <span id="mathStars">0</span></div>
+    <div class="stars-badge"><span class="cur-icon">⭐</span> <span id="mathStars">0</span></div>
     <button class="topbar-home" onclick="goHome()">🏠</button>
   </div>
   <div class="content">

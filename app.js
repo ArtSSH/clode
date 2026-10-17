@@ -5,6 +5,23 @@ const STARS_KEY = 'mult_stars_v1';
 function loadStars() { return parseInt(localStorage.getItem(STARS_KEY) || '0'); }
 function saveStars() { localStorage.setItem(STARS_KEY, totalStars); }
 
+// Reward currency: stars normally, pumpkin coins in the Halloween skin (same counter underneath)
+const CURRENCY = document.documentElement.dataset.theme === 'halloween'
+  ? { icon: '🎃', forms: ['монетка', 'монетки', 'монеток'], promise: 'там чекають гарбузові монетки' }
+  : { icon: '⭐', forms: ['зірочка', 'зірочки', 'зірочок'], promise: 'там чекають зірочки' };
+function curWord(n) {
+  const m10 = n % 10, m100 = n % 100;
+  if (m10 === 1 && m100 !== 11) return CURRENCY.forms[0];
+  if (m10 >= 2 && m10 <= 4 && (m100 < 12 || m100 > 14)) return CURRENCY.forms[1];
+  return CURRENCY.forms[2];
+}
+function curAmount(n) { return `+${n} ${curWord(n)}`; }
+function applyCurrencyLabels() {
+  document.querySelectorAll('.cur-icon').forEach(el => { el.textContent = CURRENCY.icon; });
+  document.getElementById('statStarsLabel').textContent = CURRENCY.forms[2];
+  document.getElementById('flashDoneReward').textContent = `Спробуй тест або диктант — ${CURRENCY.promise} ${CURRENCY.icon}`;
+}
+
 const EXAM_SCORES_KEY = 'mult_exam_scores_v1';
 function loadExamScores() { try { return JSON.parse(localStorage.getItem(EXAM_SCORES_KEY) || '{}'); } catch { return {}; } }
 function saveExamScore(table, score) {
@@ -271,6 +288,7 @@ function refreshHomeDashboard() {
 function selectTable(n) {
   curTable = n;
   document.getElementById('modeTitle').textContent = `Таблиця на ${n}`;
+  updateStarsBadges();
 
   const { due, started } = getTableStats(n);
   const info = document.getElementById('modeDueInfo');
@@ -601,7 +619,7 @@ function answerChoice(btn, val, correct) {
     launchMiniConfetti();
     document.getElementById('choiceStripIcon').textContent  = '🎉';
     document.getElementById('choiceStripTitle').textContent = 'Правильно!';
-    document.getElementById('choiceStripSub').textContent   = '+2 зірочки';
+    document.getElementById('choiceStripSub').textContent   = curAmount(2);
   } else {
     btn.classList.add('wrong');
     recordMistake(questions[qIdx]);
@@ -651,7 +669,7 @@ function checkTyping() {
     launchMiniConfetti();
     document.getElementById('typingStripIcon').textContent  = '🌟';
     document.getElementById('typingStripTitle').textContent = 'Правильно!';
-    document.getElementById('typingStripSub').textContent   = '+3 зірочки';
+    document.getElementById('typingStripSub').textContent   = curAmount(3);
   } else {
     inp.classList.add('wrong'); inp.value = q.ans;
     recordMistake(q);
@@ -698,7 +716,7 @@ function checkExam() {
     launchMiniConfetti();
     document.getElementById('examStripIcon').textContent  = '🌟';
     document.getElementById('examStripTitle').textContent = 'Правильно!';
-    document.getElementById('examStripSub').textContent   = '+3 зірочки';
+    document.getElementById('examStripSub').textContent   = curAmount(3);
   } else {
     inp.classList.add('wrong'); inp.value = q.ans;
     recordMistake(q);
@@ -725,7 +743,7 @@ function showExamDone() {
   document.getElementById('examScoreNum').textContent    = score;
   document.getElementById('examLevelText').textContent   = level;
   document.getElementById('examDetail').textContent      = `${sessionCorrect} з ${questions.length} правильних`;
-  document.getElementById('examStarsEarned').textContent = `+${sessionStars}`;
+  document.getElementById('examStarsEarned').textContent = curAmount(sessionStars);
   document.getElementById('examTotalStars').textContent  = totalStars;
   showScreen('sExamDone');
   if (score >= 60) launchConfetti();
@@ -815,7 +833,7 @@ function answerMath(btn, val, correct) {
     launchMiniConfetti();
     document.getElementById('mathStripIcon').textContent  = '🎉';
     document.getElementById('mathStripTitle').textContent = 'Правильно!';
-    document.getElementById('mathStripSub').textContent   = '+2 зірочки';
+    document.getElementById('mathStripSub').textContent   = curAmount(2);
   } else {
     btn.classList.add('wrong');
     document.querySelectorAll('#mathGrid .choice-opt').forEach(b => {
@@ -856,7 +874,7 @@ function showDone() {
   document.getElementById('doneEmoji').textContent       = emoji;
   document.getElementById('doneTitle').textContent       = title;
   document.getElementById('doneScore').textContent       = `${sessionCorrect} з ${total} правильно (${pct}%)`;
-  document.getElementById('doneStarsEarned').textContent = `+${sessionStars} зірочок`;
+  document.getElementById('doneStarsEarned').textContent = curAmount(sessionStars);
   document.getElementById('doneTotalStars').textContent  = totalStars;
   showScreen('sDone');
 }
@@ -965,6 +983,7 @@ function openTableRef(startN = 2) {
 /* ============================================================
    INIT
 ============================================================ */
+applyCurrencyLabels();
 buildTableRef();
 refreshTableBadges();
 refreshHomeDashboard();
