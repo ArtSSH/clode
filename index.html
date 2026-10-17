@@ -4,7 +4,21 @@
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
   <title>Таблиця множення</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com"/>
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin/>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Rubik:wght@400..900&family=Rubik+Wet+Paint&display=swap"/>
   <link rel="stylesheet" href="styles.css"/>
+  <link rel="stylesheet" href="theme-halloween.css"/>
+  <script>
+    // Seasonal skin: Halloween from Oct 1 to Nov 2. ?theme=classic|halloween overrides for testing.
+    (function () {
+      var forced = new URLSearchParams(location.search).get('theme');
+      var d = new Date(), m = d.getMonth() + 1, day = d.getDate();
+      var season = (m === 10) || (m === 11 && day <= 2);
+      var theme = forced || (season ? 'halloween' : 'classic');
+      if (theme !== 'classic') document.documentElement.setAttribute('data-theme', theme);
+    })();
+  </script>
 </head>
 <body>
 
@@ -395,7 +409,7 @@
 <div class="screen" id="sTableRef">
   <div class="topbar">
     <button class="topbar-back" onclick="goHome()">← Назад</button>
-    <div style="flex:1; text-align:center; font-size:0.95rem; font-weight:800; color:var(--text);" id="tablerefTitle">× 2</div>
+    <div style="flex:1; text-align:center; font-size:0.95rem; font-weight:800; color:var(--on-bg);" id="tablerefTitle">× 2</div>
     <div style="width:44px"></div>
   </div>
 

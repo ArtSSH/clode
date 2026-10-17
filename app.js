@@ -731,12 +731,18 @@ function showExamDone() {
   if (score >= 60) launchConfetti();
 }
 
+function confettiColors() {
+  return document.documentElement.dataset.theme === 'halloween'
+    ? ['#E8590C','#FF8A3D','#FFC247','#6B2C8C','#4C8A2E','#F6EBDD']
+    : ['#5B3BF5','#FFB800','#3DC95B','#FF4B4B','#FF6B9D','#00D4FF','#FFA500'];
+}
+
 function launchConfetti() {
   const canvas = document.getElementById('confettiCanvas');
   const ctx    = canvas.getContext('2d');
   canvas.width  = window.innerWidth;
   canvas.height = window.innerHeight;
-  const colors = ['#5B3BF5','#FFB800','#3DC95B','#FF4B4B','#FF6B9D','#00D4FF','#FFA500'];
+  const colors = confettiColors();
   const particles = Array.from({ length: 130 }, () => ({
     x: Math.random() * canvas.width,
     y: -10 - Math.random() * 120,
@@ -862,7 +868,7 @@ function launchMiniConfetti() {
   canvas.height = window.innerHeight;
   document.body.appendChild(canvas);
   const ctx    = canvas.getContext('2d');
-  const colors = ['#5B3BF5','#FFB800','#3DC95B','#FF4B4B','#FF6B9D','#00D4FF'];
+  const colors = confettiColors();
   const particles = Array.from({ length: 55 }, () => ({
     x: Math.random() * canvas.width,
     y: -8 - Math.random() * 60,

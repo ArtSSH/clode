@@ -1,0 +1,145 @@
+/* ============================================================
+   HALLOWEEN SKIN — temporary
+   Active when <html data-theme="halloween"> (set by date in index.html).
+   To remove: delete this file and its <link> in index.html.
+============================================================ */
+
+html[data-theme="halloween"] {
+  --accent:      #E8590C;   /* pumpkin */
+  --accent2:     #FF8A3D;
+  --accent-deep: #9C3A00;
+  --btn-sh:      0 5px 0 0 #9C3A00;
+  --bg:          #221433;   /* night plum */
+  --text:        #23142F;
+  --muted:       #8C7C9C;
+  --border:      #EEE2EC;
+  --card-sh:     0 4px 0 0 #120A1C;
+  --hero-bg:     linear-gradient(165deg, #150B22 0%, #33194D 55%, #6B2C5C 100%);
+  --tile-num:    #3A1500;
+  --dot-off:     rgba(110, 35, 0, 0.35);
+  --on-bg:       #F6EBDD;   /* text placed straight on the night background */
+  --on-bg-muted: #BFA9CF;
+  --input-bg:    #FFF5EA;
+  --candle:      #FFC247;
+}
+
+/* Night sky: a sparse field of stars behind everything */
+html[data-theme="halloween"] body {
+  background-color: var(--bg);
+  background-image:
+    radial-gradient(1.5px 1.5px at 22px 34px, rgba(255, 255, 255, 0.55), transparent),
+    radial-gradient(1px 1px at 128px 92px, rgba(255, 255, 255, 0.45), transparent),
+    radial-gradient(1.5px 1.5px at 74px 168px, rgba(255, 220, 160, 0.5), transparent),
+    radial-gradient(1px 1px at 172px 196px, rgba(255, 255, 255, 0.35), transparent);
+  background-size: 200px 220px;
+}
+html[data-theme="halloween"] .topbar,
+html[data-theme="halloween"] .quiz-actions,
+html[data-theme="halloween"] .flash-actions-bar { background: rgba(34, 20, 51, 0.94); }
+
+/* ---------- Home hero: moon, one bat, fox with a pumpkin ---------- */
+html[data-theme="halloween"] .home-hero::before {
+  content: '🦇';
+  background: none; inset: auto;
+  top: 10px; right: 70px;
+  font-size: 1.5rem;
+  filter: brightness(1.6) drop-shadow(0 0 6px rgba(255, 194, 71, 0.35));
+  animation: batFlutter 3.2s ease-in-out infinite;
+}
+html[data-theme="halloween"] .home-hero::after {
+  content: '';
+  position: absolute; top: 16px; right: 20px;
+  width: 38px; height: 38px; border-radius: 50%;
+  background: radial-gradient(circle at 38% 35%, #FFF1C4 0%, var(--candle) 70%);
+  box-shadow: 0 0 28px rgba(255, 194, 71, 0.55);
+  pointer-events: none;
+}
+@keyframes batFlutter {
+  0%, 100% { transform: translate(0, 0) rotate(-6deg); }
+  50%      { transform: translate(-10px, 6px) rotate(6deg); }
+}
+html[data-theme="halloween"] .hero-emoji-large { position: relative; }
+html[data-theme="halloween"] .hero-emoji-large::after {
+  content: '🎃';
+  position: absolute; right: -6px; bottom: -4px;
+  font-size: 2rem;
+}
+html[data-theme="halloween"] .home-hero h1 {
+  font-family: 'Rubik Wet Paint', var(--font-ui);
+  font-weight: 400; letter-spacing: 0;
+  font-size: 1.8rem; line-height: 1.15;
+  color: var(--candle);
+  padding-right: 44px; /* keep clear of the moon */
+}
+
+/* ---------- Signature: every table is a pumpkin ---------- */
+html[data-theme="halloween"] .table-grid { row-gap: 18px; padding-top: 6px; }
+html[data-theme="halloween"] .table-btn {
+  background:
+    radial-gradient(ellipse at 50% 30%, rgba(255, 255, 255, 0.28), transparent 55%),
+    #F7872E;
+  border-radius: 46% 46% 40% 40% / 54% 54% 44% 44%;
+  box-shadow: inset 0 -8px 0 rgba(140, 45, 0, 0.22), 0 4px 0 0 #7A2C00;
+}
+html[data-theme="halloween"] .table-btn::before {      /* stem */
+  content: '';
+  position: absolute; top: -7px; left: 50%;
+  width: 11px; height: 15px;
+  background: #4C8A2E; border-radius: 3px 6px 2px 2px;
+  transform: translateX(-50%) rotate(10deg);
+}
+html[data-theme="halloween"] .table-btn::after {       /* ribs */
+  content: '';
+  position: absolute; inset: 6% 30%;
+  border-left: 3px solid rgba(140, 45, 0, 0.18);
+  border-right: 3px solid rgba(140, 45, 0, 0.18);
+  border-radius: 50%;
+  pointer-events: none;
+}
+html[data-theme="halloween"] .table-btn:active { box-shadow: inset 0 -8px 0 rgba(140, 45, 0, 0.22); }
+html[data-theme="halloween"] .table-btn-num { position: relative; z-index: 1; }
+html[data-theme="halloween"] .table-dots { position: relative; z-index: 1; }
+
+/* Learned table = lit jack-o'-lantern */
+html[data-theme="halloween"] .table-btn.mastered {
+  background:
+    radial-gradient(ellipse at 50% 45%, #FFE9A8 0%, #FFB347 45%, #F7872E 80%);
+  box-shadow: 0 0 22px rgba(255, 180, 60, 0.7), 0 4px 0 0 #7A2C00;
+}
+html[data-theme="halloween"] .table-btn.mastered .table-btn-num { color: #5A1E00; }
+html[data-theme="halloween"] .table-badge.due { border: 2px solid #FFF5EA; }
+
+/* ---------- Things that sit straight on the night background ---------- */
+html[data-theme="halloween"] .section-label,
+html[data-theme="halloween"] .topbar-counter,
+html[data-theme="halloween"] .done-score,
+html[data-theme="halloween"] .exam-score-out,
+html[data-theme="halloween"] .exam-detail,
+html[data-theme="halloween"] .strip-text span,
+html[data-theme="halloween"] .home-tableref-btn,
+html[data-theme="halloween"] .typing-eq { color: var(--on-bg-muted); }
+html[data-theme="halloween"] .q-card .typing-eq { color: var(--muted); }
+html[data-theme="halloween"] .done-title,
+html[data-theme="halloween"] .exam-level-text { color: var(--on-bg); }
+html[data-theme="halloween"] .answer-strip.ok .strip-text strong  { color: #7BE495; }
+html[data-theme="halloween"] .answer-strip.err .strip-text strong { color: #FF9B8F; }
+html[data-theme="halloween"] .topbar .topbar-back,
+html[data-theme="halloween"] .topbar .topbar-home { background: rgba(255, 255, 255, 0.1); color: var(--on-bg); }
+html[data-theme="halloween"] .progress-wrap { background: rgba(255, 255, 255, 0.14); }
+html[data-theme="halloween"] .home-tableref-btn { border-color: rgba(255, 255, 255, 0.18); }
+html[data-theme="halloween"] .home-version { color: rgba(255, 255, 255, 0.25); }
+html[data-theme="halloween"] .tableref-dot { background: rgba(255, 255, 255, 0.2); }
+html[data-theme="halloween"] .tableref-dot.active { background: var(--accent); }
+html[data-theme="halloween"] .mode-item-subtle { background: rgba(255, 255, 255, 0.07); border-color: rgba(255, 255, 255, 0.18); }
+html[data-theme="halloween"] .mode-item-subtle h3 { color: var(--on-bg); }
+html[data-theme="halloween"] .mode-item-subtle p,
+html[data-theme="halloween"] .mode-item-subtle .mode-arrow { color: var(--on-bg-muted); }
+
+/* Purple-tinted chips inside white cards turn pumpkin */
+html[data-theme="halloween"] .mode-icon.study,
+html[data-theme="halloween"] .badge-study { background: #FFEBD9; }
+html[data-theme="halloween"] .home-mixed-btn { background: #6B2C8C; box-shadow: 0 4px 0 0 #3A1450; }
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-theme="halloween"] .home-hero::before { animation: none; }
+}

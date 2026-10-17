@@ -13,13 +13,24 @@
   --border:  #E4E2F8;
   --card-sh: 0 4px 0 0 #D8D4F8;
   --btn-sh:  0 5px 0 0 #3D28C4;
+  --accent-deep: #3D20D8;
+  --hero-bg: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  --tile-bg:  #ECEAFF;
+  --tile-sh:  #C4BEF0;
+  --tile-num: #3D20D8;
+  --dot-off:  #CFC9F5;
+  --on-bg:    var(--text);
+  --input-bg: var(--bg);
+  --font-ui: 'Rubik', -apple-system, 'Segoe UI', system-ui, sans-serif;
 }
+
+button, input { font-family: inherit; }
 
 html, body {
   height: 100%;
   background: var(--bg);
   color: var(--text);
-  font-family: -apple-system, 'Segoe UI', system-ui, sans-serif;
+  font-family: var(--font-ui);
   -webkit-font-smoothing: antialiased;
   letter-spacing: -0.2px;
 }
@@ -79,7 +90,7 @@ body {
    HOME SCREEN
 ============================================================ */
 .home-hero {
-  background: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  background: var(--hero-bg);
   border-radius: 0 0 32px 32px;
   padding: 22px 20px 24px;
   color: white;
@@ -150,18 +161,18 @@ body {
 
 .table-btn {
   border: none; border-radius: 20px;
-  background: #ECEAFF;
+  background: var(--tile-bg);
   aspect-ratio: 1;
   display: flex; flex-direction: column;
   align-items: center; justify-content: center;
   cursor: pointer; position: relative;
-  box-shadow: 0 4px 0 0 #C4BEF0;
+  box-shadow: 0 4px 0 0 var(--tile-sh);
   transition: transform .12s, box-shadow .12s;
   gap: 2px;
 }
 .table-btn:active { transform: translateY(3px); box-shadow: none; }
 
-.table-btn-num { font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -1px; color: #3D20D8; }
+.table-btn-num { font-size: 2.6rem; font-weight: 900; line-height: 1; letter-spacing: -1px; color: var(--tile-num); }
 .table-due-label { font-size: 0.66rem; font-weight: 700; color: var(--muted); }
 
 .table-badge {
@@ -173,7 +184,7 @@ body {
   display: flex; align-items: center; justify-content: center;
 }
 .table-dots { display: flex; gap: 3px; margin-top: 6px; }
-.table-dots span { width: 6px; height: 6px; border-radius: 50%; background: #CFC9F5; }
+.table-dots span { width: 6px; height: 6px; border-radius: 50%; background: var(--dot-off); }
 .table-dots span.part { background: #FFD66B; }
 .table-dots span.on { background: var(--green); }
 .table-btn.mastered { background: #E3F8E8; box-shadow: 0 4px 0 0 #A9DDB5; }
@@ -183,7 +194,7 @@ body {
   border: none; border-radius: 16px; cursor: pointer;
   background: var(--accent); color: white;
   font-size: 0.95rem; font-weight: 800;
-  box-shadow: 0 4px 0 0 #3D20D8;
+  box-shadow: 0 4px 0 0 var(--accent-deep);
 }
 .home-mixed-btn:active { transform: translateY(3px); box-shadow: none; }
 
@@ -194,7 +205,7 @@ body {
    MODE SELECT
 ============================================================ */
 .mode-unified-header {
-  background: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  background: var(--hero-bg);
   border-radius: 0 0 32px 32px;
   padding: 14px 16px 32px;
   color: white;
@@ -260,7 +271,7 @@ body {
    FLASH CARD
 ============================================================ */
 .flash-hero {
-  background: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  background: var(--hero-bg);
   padding: 0 20px 16px;
   border-radius: 0 0 28px 28px;
   color: white;
@@ -405,7 +416,7 @@ body {
 .typing-input {
   width: 110px; height: 70px;
   font-size: 2.4rem; font-weight: 900; text-align: center;
-  background: var(--bg); border: 2px solid var(--border);
+  background: var(--input-bg); border: 2px solid var(--border);
   border-radius: 16px; color: var(--text); outline: none;
   transition: border-color .15s; -moz-appearance: textfield;
   letter-spacing: -0.5px;
@@ -474,7 +485,7 @@ body {
 
 /* ===== EXAM DONE ===== */
 .exam-done-header {
-  background: linear-gradient(145deg, #5B3BF5 0%, #8B5CF6 60%, #C084FC 100%);
+  background: var(--hero-bg);
   border-radius: 0 0 32px 32px;
   padding: 14px 16px 28px;
   color: white;
