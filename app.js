@@ -7,7 +7,11 @@ function saveStars() { localStorage.setItem(STARS_KEY, totalStars); }
 
 const EXAM_SCORES_KEY = 'mult_exam_scores_v1';
 function loadExamScores() { try { return JSON.parse(localStorage.getItem(EXAM_SCORES_KEY) || '{}'); } catch { return {}; } }
-function saveExamScore(table, score) { const d = loadExamScores(); d[table] = score; localStorage.setItem(EXAM_SCORES_KEY, JSON.stringify(d)); }
+function saveExamScore(table, score) {
+  const d = loadExamScores();
+  if (d[table] == null || score > d[table]) d[table] = score; // keep best result
+  localStorage.setItem(EXAM_SCORES_KEY, JSON.stringify(d));
+}
 function getExamScore(table) { return loadExamScores()[table] ?? null; }
 
 let totalStars     = loadStars();
@@ -25,8 +29,12 @@ let srsQueueIdx    = 0;
    SRS  (localStorage)
 ============================================================ */
 const SRS_KEY = 'mult_srs_v1';
-function today() { return new Date().toISOString().slice(0, 10); }
-function addDays(d, n) { const dt = new Date(d); dt.setDate(dt.getDate() + n); return dt.toISOString().slice(0, 10); }
+function fmtDate(dt) {
+  const p = n => String(n).padStart(2, '0');
+  return `${dt.getFullYear()}-${p(dt.getMonth() + 1)}-${p(dt.getDate())}`;
+}
+function today() { return fmtDate(new Date()); }
+function addDays(d, n) { const [y, m, day] = d.split('-').map(Number); return fmtDate(new Date(y, m - 1, day + n)); }
 function loadSRS() { try { return JSON.parse(localStorage.getItem(SRS_KEY) || '{}'); } catch { return {}; } }
 function saveSRS(data) { localStorage.setItem(SRS_KEY, JSON.stringify(data)); }
 function cardKey(table, b) { return `${table}_${b}`; }
@@ -76,6 +84,9 @@ function applyRating(table, b, rating) {
   setCardData(table, b, { interval, ease, due: addDays(today(), interval), lapses });
   return { requeue: false };
 }
+
+// A wrong answer in test/dictation/exam sends the fact back to the cards due today
+function recordMistake(q) { applyRating(q.a, q.b, 0); }
 
 function buildSRSQueue(table) {
   const t = today();
@@ -228,8 +239,14 @@ function buildQs(table) {
   for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
   return arr;
 }
-function wrongOpts(correct) {
+function wrongOpts(q) {
+  const correct = q.ans;
+  // typical mistakes: neighbouring products and off-by-one slips
+  const near = [q.a * (q.b - 1), q.a * (q.b + 1), (q.a - 1) * q.b, (q.a + 1) * q.b, correct - 1, correct + 1, correct + 10, correct - 10]
+    .filter(v => v > 0 && v !== correct);
   const pool = new Set([correct]);
+  const nearShuffled = [...new Set(near)].sort(() => Math.random() - 0.5);
+  for (const v of nearShuffled) { if (pool.size >= 4) break; pool.add(v); }
   while (pool.size < 4) pool.add((Math.floor(Math.random() * 10) + 1) * (Math.floor(Math.random() * 10) + 1));
   const arr = [...pool];
   for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
@@ -390,7 +407,7 @@ function renderChoice() {
   updateStarsBadges();
   document.getElementById('choiceStrip').classList.remove('show','ok','err');
   document.getElementById('choiceNextBtn').style.display = 'none';
-  const opts = wrongOpts(q.ans);
+  const opts = wrongOpts(q);
   const grid = document.getElementById('choiceGrid');
   grid.innerHTML = '';
   opts.forEach(val => {
@@ -416,6 +433,7 @@ function answerChoice(btn, val, correct) {
     document.getElementById('choiceStripSub').textContent   = '+2 зірочки';
   } else {
     btn.classList.add('wrong');
+    recordMistake(questions[qIdx]);
     document.querySelectorAll('.choice-opt').forEach(b => {
       if (parseInt(b.textContent) === correct) b.classList.add('correct');
       else if (b !== btn) b.classList.add('dim');
@@ -447,6 +465,7 @@ function renderTyping() {
 function checkTyping() {
   const q   = questions[qIdx];
   const inp = document.getElementById('typingInput');
+  if (inp.disabled) return;
   const val = parseInt(inp.value);
   if (isNaN(val) || inp.value.trim() === '') return;
   inp.disabled = true;
@@ -464,6 +483,7 @@ function checkTyping() {
     document.getElementById('typingStripSub').textContent   = '+3 зірочки';
   } else {
     inp.classList.add('wrong'); inp.value = q.ans;
+    recordMistake(q);
     strip.className = 'answer-strip show err';
     document.getElementById('typingStripIcon').textContent  = '😅';
     document.getElementById('typingStripTitle').textContent = 'Не правильно';
@@ -471,6 +491,7 @@ function checkTyping() {
   }
 }
 document.getElementById('typingInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkTyping(); });
+document.getElementById('examInput').addEventListener('keydown', e => { if (e.key === 'Enter') checkExam(); });
 
 /* ============================================================
    EXAM
@@ -491,6 +512,7 @@ function renderExam() {
 function checkExam() {
   const q   = questions[qIdx];
   const inp = document.getElementById('examInput');
+  if (inp.disabled) return;
   const val = parseInt(inp.value);
   if (isNaN(val) || inp.value.trim() === '') return;
   inp.disabled = true;
@@ -508,6 +530,7 @@ function checkExam() {
     document.getElementById('examStripSub').textContent   = '+3 зірочки';
   } else {
     inp.classList.add('wrong'); inp.value = q.ans;
+    recordMistake(q);
     strip.className = 'answer-strip show err';
     document.getElementById('examStripIcon').textContent  = '😅';
     document.getElementById('examStripTitle').textContent = 'Не правильно';
@@ -525,7 +548,7 @@ function showExamDone() {
   else if (score >= 20) { emoji = '📚'; level = 'Треба повчити'; }
   saveExamScore(curTable, score);
   const eb = document.getElementById('examLastScore');
-  if (eb) { eb.textContent = `${score} б.`; eb.style.display = 'inline'; }
+  if (eb) { eb.textContent = `${getExamScore(curTable)} б.`; eb.style.display = 'inline'; }
   document.getElementById('examTableTitle').textContent  = `Таблиця на ${curTable}`;
   document.getElementById('examPrizeEmoji').textContent  = emoji;
   document.getElementById('examScoreNum').textContent    = score;
