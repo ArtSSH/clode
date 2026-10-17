@@ -54,6 +54,8 @@
     </div>
   </div>
 
+  <button class="home-mixed-btn" id="mixedBtn" style="display:none" onclick="startMixedReview()"></button>
+
   <div class="section-label">Обери таблицю</div>
   <div class="table-grid" id="tableGrid"></div>
 
@@ -139,7 +141,7 @@
 <div class="screen" id="sFlash">
   <div class="flash-hero">
     <div class="flash-topbar-inner">
-      <button class="topbar-back" style="background:rgba(255,255,255,0.18); color:white;" onclick="showScreen('sMode')">← Назад</button>
+      <button class="topbar-back" style="background:rgba(255,255,255,0.18); color:white;" onclick="flashBack()">← Назад</button>
       <div class="progress-wrap" style="background:rgba(255,255,255,0.25);">
         <div class="progress-fill" id="flashProg" style="width:10%; background:white;"></div>
       </div>
@@ -287,14 +289,14 @@
     <div class="done-emoji">📖</div>
     <div class="done-title">Молодець!</div>
     <div class="done-score" id="flashDoneText">Всі картки переглянуто</div>
-    <div style="margin:22px 0; width:100%; background:var(--border); border-radius:16px; padding:18px; text-align:center;">
+    <div id="flashDoneHint" style="margin:22px 0; width:100%; background:var(--border); border-radius:16px; padding:18px; text-align:center;">
       <div style="font-size:0.85rem; color:var(--muted); font-weight:700; margin-bottom:6px;">Тепер перевір себе!</div>
       <div style="font-size:0.9rem; color:var(--text);">Спробуй тест або диктант — там чекають зірочки ⭐</div>
     </div>
     <div class="done-actions">
-      <button class="btn-primary" onclick="startMode('choice')">Тест 🎯</button>
-      <button class="btn-primary" style="background:#FFB800; box-shadow:0 5px 0 0 #C08800;" onclick="startMode('typing')">Диктант ✏️</button>
-      <button class="btn-secondary" onclick="showScreen('sMode')">← Назад до режимів</button>
+      <button class="btn-primary" id="flashDoneTestBtn" onclick="startMode('choice')">Тест 🎯</button>
+      <button class="btn-primary" id="flashDoneTypeBtn" style="background:#FFB800; box-shadow:0 5px 0 0 #C08800;" onclick="startMode('typing')">Диктант ✏️</button>
+      <button class="btn-secondary" id="flashDoneBackBtn" onclick="showScreen('sMode')">← Назад до режимів</button>
     </div>
   </div>
 </div>

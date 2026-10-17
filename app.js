@@ -24,6 +24,7 @@ let sessionCorrect = 0;
 let flashRevealed  = false;
 let srsQueue       = [];
 let srsQueueIdx    = 0;
+let mixedReview    = false;
 
 /* ============================================================
    SRS  (localStorage)
@@ -64,6 +65,23 @@ function getTableStats(table) {
   return { due, started };
 }
 
+// Fact level 0-4 from its SRS state: 0 new, 1 learning, 2 young, 3 known, 4 solid
+function factLevel(cd) {
+  if (!cd) return 0;
+  if (cd.interval < 1) return 1;
+  if (cd.interval < 3) return 2;
+  if (cd.interval < 8) return 3;
+  return 4;
+}
+// A table counts as learned when all 10 of its facts are at level 3+
+function getTableMastery(table) {
+  const data = loadSRS();
+  const levels = [];
+  for (let b = 1; b <= 10; b++) levels.push(factLevel(data[cardKey(table, b)]));
+  const known = levels.filter(l => l >= 3).length;
+  return { levels, known, mastered: known === 10 };
+}
+
 function applyRating(table, b, rating) {
   const cd = getCardData(table, b);
   let { interval, ease, lapses } = cd;
@@ -101,7 +119,24 @@ function buildSRSQueue(table) {
   due.sort((a, z) => a.due.localeCompare(z.due));
   let queue = [...due.map(x => x.b), ...fresh];
   if (queue.length === 0) queue = [...upcoming];
-  return queue.map(b => ({ b, requeueCount: 0 }));
+  return queue.map(b => ({ t: table, b, requeueCount: 0 }));
+}
+
+// Cards due today from every table, oldest first (capped so one session stays short)
+function buildMixedQueue(limit = 20) {
+  const t = today();
+  const data = loadSRS();
+  const due = [];
+  for (let table = 2; table <= 10; table++) {
+    for (let b = 1; b <= 10; b++) {
+      const cd = data[cardKey(table, b)];
+      if (cd && cd.due <= t) due.push({ t: table, b, due: cd.due });
+    }
+  }
+  due.sort((x, y) => x.due.localeCompare(y.due));
+  const picked = due.slice(0, limit);
+  for (let i = picked.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [picked[i], picked[j]] = [picked[j], picked[i]]; }
+  return picked.map(x => ({ t: x.t, b: x.b, requeueCount: 0 }));
 }
 
 /* ============================================================
@@ -123,6 +158,15 @@ function refreshTableBadges() {
     const btn = document.getElementById(`tbtn_${i}`);
     const old = btn.querySelector('.table-badge');
     if (old) old.remove();
+
+    const oldDots = btn.querySelector('.table-dots');
+    if (oldDots) oldDots.remove();
+    const { levels, mastered } = getTableMastery(i);
+    const dots = document.createElement('div');
+    dots.className = 'table-dots';
+    dots.innerHTML = levels.map(l => `<span class="${l >= 3 ? 'on' : l >= 1 ? 'part' : ''}"></span>`).join('');
+    btn.appendChild(dots);
+    btn.classList.toggle('mastered', mastered);
 
     const { due, started } = getTableStats(i);
 
@@ -178,11 +222,12 @@ function refreshHomeDashboard() {
   document.getElementById('statDue').textContent   = totalDue;
   document.getElementById('statStars').textContent = totalStars;
   let mastered = 0;
-  for (let t = 2; t <= 10; t++) {
-    const s = getExamScore(t);
-    if (s !== null && s >= 80) mastered++;
-  }
+  for (let t = 2; t <= 10; t++) if (getTableMastery(t).mastered) mastered++;
   document.getElementById('statMastered').textContent = mastered;
+
+  const mixedBtn = document.getElementById('mixedBtn');
+  mixedBtn.style.display = totalDue > 0 ? '' : 'none';
+  mixedBtn.textContent = `🔀 Змішане повторення · ${Math.min(totalDue, 20)}`;
 }
 
 /* ============================================================
@@ -252,6 +297,30 @@ function wrongOpts(q) {
   for (let i = arr.length - 1; i > 0; i--) { const j = Math.floor(Math.random() * (i + 1)); [arr[i], arr[j]] = [arr[j], arr[i]]; }
   return arr;
 }
+// 10 questions for test/dictation: weak facts come up more often (max 2 per fact, never back to back)
+function buildWeightedQs(table) {
+  const data = loadSRS();
+  const weight = {}, left = {};
+  for (let b = 1; b <= 10; b++) {
+    const cd = data[cardKey(table, b)];
+    weight[b] = cd
+      ? Math.max(0.3, 1 + cd.lapses * 1.5 + Math.max(0, 2.5 - cd.ease) * 2 + (cd.interval < 1 ? 1 : 0) - factLevel(cd) * 0.15)
+      : 2;
+    left[b] = 2;
+  }
+  const out = [];
+  let prev = null;
+  while (out.length < 10) {
+    const cands = [];
+    for (let b = 1; b <= 10; b++) if (left[b] > 0 && b !== prev) cands.push(b);
+    let r = Math.random() * cands.reduce((s, b) => s + weight[b], 0);
+    let pick = cands[cands.length - 1];
+    for (const b of cands) { r -= weight[b]; if (r <= 0) { pick = b; break; } }
+    left[pick]--; prev = pick;
+    out.push({ a: table, b: pick, ans: table * pick });
+  }
+  return out;
+}
 function qFmt(q) { return `${q.a} <span class="times">×</span> ${q.b}`; }
 
 /* ── MATH EXERCISES ── */
@@ -312,7 +381,7 @@ function setProgress(fillId, ctrId, idx, total) {
    START MODE
 ============================================================ */
 function startMode(mode) {
-  curMode = mode; qIdx = 0; sessionStars = 0; sessionCorrect = 0;
+  curMode = mode; qIdx = 0; sessionStars = 0; sessionCorrect = 0; mixedReview = false;
   if (mode === 'flash' || mode === 'flashAll') {
     if (mode === 'flashAll') {
       const arr = [1,2,3,4,5,6,7,8,9,10];
@@ -320,7 +389,7 @@ function startMode(mode) {
         const j = Math.floor(Math.random() * (i + 1));
         [arr[i], arr[j]] = [arr[j], arr[i]];
       }
-      srsQueue = arr.map(b => ({ b, requeueCount: 0 }));
+      srsQueue = arr.map(b => ({ t: curTable, b, requeueCount: 0 }));
     } else {
       srsQueue = buildSRSQueue(curTable);
     }
@@ -331,7 +400,7 @@ function startMode(mode) {
       questions = buildMathQs(curTable);
       renderMath(); showScreen('sMath');
     } else {
-      questions = buildQs(curTable);
+      questions = mode === 'exam' ? buildQs(curTable) : buildWeightedQs(curTable);
       if (mode === 'choice') { renderChoice(); showScreen('sChoice'); }
       if (mode === 'typing') { renderTyping(); showScreen('sTyping'); }
       if (mode === 'exam')   { renderExam();   showScreen('sExam');   }
@@ -340,21 +409,38 @@ function startMode(mode) {
 }
 function restartCurrentMode() { startMode(curMode); }
 
+function startMixedReview() {
+  const queue = buildMixedQueue();
+  if (!queue.length) return;
+  curMode = 'flash'; qIdx = 0; sessionStars = 0; sessionCorrect = 0;
+  srsQueue = queue; srsQueueIdx = 0;
+  mixedReview = true;
+  renderFlash(); showScreen('sFlash');
+}
+function flashBack() { if (mixedReview) goHome(); else showScreen('sMode'); }
+
 /* ============================================================
    FLASH CARDS
 ============================================================ */
 function renderFlash() {
   if (srsQueueIdx >= srsQueue.length) {
-    document.getElementById('flashDoneText').textContent =
-      `Переглянуто ${srsQueueIdx} карток — таблиця на ${curTable}`;
+    document.getElementById('flashDoneText').textContent = mixedReview
+      ? `Переглянуто ${srsQueueIdx} карток — змішане повторення`
+      : `Переглянуто ${srsQueueIdx} карток — таблиця на ${curTable}`;
+    ['flashDoneHint', 'flashDoneTestBtn', 'flashDoneTypeBtn'].forEach(id => {
+      document.getElementById(id).style.display = mixedReview ? 'none' : '';
+    });
+    const back = document.getElementById('flashDoneBackBtn');
+    back.textContent = mixedReview ? '🏠 На головну' : '← Назад до режимів';
+    back.onclick = flashBack;
     showScreen('sFlashDone');
     return;
   }
-  const { b } = srsQueue[srsQueueIdx];
-  document.getElementById('flashQ').innerHTML = `${curTable} <span class="times">×</span> ${b}`;
-  document.getElementById('flashAnsNum').textContent = curTable * b;
+  const { t, b } = srsQueue[srsQueueIdx];
+  document.getElementById('flashQ').innerHTML = `${t} <span class="times">×</span> ${b}`;
+  document.getElementById('flashAnsNum').textContent = t * b;
 
-  const cd = getCardData(curTable, b);
+  const cd = getCardData(t, b);
   const srsEl = document.getElementById('flashSrsInfo');
   if (cd.interval > 0) {
     const dots = [1,2,3,4,5].map(d => `<div class="srs-dot ${d <= Math.min(cd.interval,5) ? 'ok' : ''}"></div>`).join('');
@@ -388,10 +474,10 @@ function revealFlash() {
 
 function rateCard(rating) {
   const item   = srsQueue[srsQueueIdx];
-  const result = applyRating(curTable, item.b, rating);
+  const result = applyRating(item.t, item.b, rating);
   if (result.requeue && item.requeueCount < 3) {
     const at = Math.min(srsQueueIdx + 3, srsQueue.length);
-    srsQueue.splice(at, 0, { b: item.b, requeueCount: item.requeueCount + 1 });
+    srsQueue.splice(at, 0, { t: item.t, b: item.b, requeueCount: item.requeueCount + 1 });
   }
   srsQueueIdx++;
   renderFlash();
